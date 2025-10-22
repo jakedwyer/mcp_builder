@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "{{ blueprint.name | lower | replace(' ', '_') }}"
+version = "0.1.0"
+description = "{{ blueprint.summary }}"
+authors = [{ name = "Generated" }]
+requires-python = ">=3.11"
+dependencies = [
+    "httpx>=0.25",
+    "mcp>=0.1.0",
+]
+
+[project.scripts]
+{{ blueprint.name | lower | replace(' ', '_') }} = "server.main:main"

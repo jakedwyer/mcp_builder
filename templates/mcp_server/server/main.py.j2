@@ -1,0 +1,53 @@
+"""Generated MCP server entrypoint."""
+
+from __future__ import annotations
+
+import os
+from typing import Any
+
+import httpx
+from mcp.server import Server
+from mcp.server.fastapi import run
+
+SERVER = Server("{{ blueprint.name }}")
+
+
+def _get_base_url() -> str:
+    base_url = os.environ.get("API_BASE_URL")
+    if not base_url:
+        raise RuntimeError("API_BASE_URL environment variable is required")
+    return base_url.rstrip("/")
+
+
+async def _perform_request(method: str, path: str, *, params: dict[str, Any] | None = None, json_body: Any | None = None) -> dict[str, Any]:
+    async with httpx.AsyncClient(base_url=_get_base_url()) as client:
+        response = await client.request(method, path, params=params, json=json_body)
+        payload = {
+            "status": response.status_code,
+            "headers": dict(response.headers),
+            "body": response.text,
+        }
+        try:
+            payload["json"] = response.json()
+        except ValueError:
+            payload["json"] = None
+        return payload
+
+
+{% for endpoint in blueprint.endpoints %}
+@SERVER.tool("{{ endpoint.name }}", summary="{{ endpoint.description }}")
+async def {{ endpoint.name }}(context, params: dict[str, Any] | None = None, body: Any | None = None) -> dict[str, Any]:
+    """Invoke {{ endpoint.method }} {{ endpoint.path }}."""
+
+    return await _perform_request("{{ endpoint.method }}", "{{ endpoint.path }}", params=params, json_body=body)
+
+
+{% endfor %}
+def main() -> None:
+    """Run the MCP server."""
+
+    run(SERVER)
+
+
+if __name__ == "__main__":
+    main()
