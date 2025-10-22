@@ -1,0 +1,25 @@
+# {{ blueprint.name }}
+
+{{ blueprint.summary }}
+
+## Endpoints
+
+{% for endpoint in blueprint.endpoints %}- `{{ endpoint.method }} {{ endpoint.path }}` – {{ endpoint.description }}
+{% endfor %}
+
+## Prerequisites
+
+{% if blueprint.prerequisites %}
+{% for item in blueprint.prerequisites %}- {{ item }}
+{% endfor %}
+{% else %}- None
+{% endif %}
+
+## Usage
+
+Install the package and run the MCP server entrypoint:
+
+```bash
+pip install .
+{{ blueprint.name | lower | replace(' ', '_') }}
+```
